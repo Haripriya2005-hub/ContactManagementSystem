@@ -1,2 +1,13 @@
-# ContactManagementSystem
-Implementing a Contact Management System with the features you requested:  Add new contact (name, phone, email)  View all contacts  Edit existing contact  Delete a contact  Save/load contacts to/from a file (for persistence)
+# Contact Management System in Java
+
+Simple console-based Contact Management System with options to add, view, edit, and delete contacts.
+
+## Features
+- Store contact info (name, phone, email)
+- Save/load contacts from `contacts.json`
+- Command line menu
+
+## Requirements
+- Java 8+
+- Gson library for JSON support
+
