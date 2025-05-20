@@ -1,0 +1,176 @@
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.io.*;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+class Contact {
+    private String name;
+    private String phone;
+    private String email;
+
+    public Contact() {}
+
+    public Contact(String name, String phone, String email) {
+        this.name = name;
+        this.phone = phone;
+        this.email = email;
+    }
+
+    // Getters and setters
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    @Override
+    public String toString() {
+        return name + " - " + phone + " - " + email;
+    }
+}
+
+public class ContactManager {
+    private static final String FILE_NAME = "contacts.json";
+    private List<Contact> contacts;
+    private Scanner scanner;
+    private Gson gson;
+
+    public ContactManager() {
+        gson = new Gson();
+        contacts = loadContacts();
+        scanner = new Scanner(System.in);
+    }
+
+    private List<Contact> loadContacts() {
+        try (Reader reader = new FileReader(FILE_NAME)) {
+            Type listType = new TypeToken<ArrayList<Contact>>() {}.getType();
+            List<Contact> list = gson.fromJson(reader, listType);
+            return list != null ? list : new ArrayList<>();
+        } catch (IOException e) {
+            return new ArrayList<>();
+        }
+    }
+
+    private void saveContacts() {
+        try (Writer writer = new FileWriter(FILE_NAME)) {
+            gson.toJson(contacts, writer);
+        } catch (IOException e) {
+            System.out.println("Error saving contacts: " + e.getMessage());
+        }
+    }
+
+    private void addContact() {
+        System.out.print("Enter name: ");
+        String name = scanner.nextLine().trim();
+
+        System.out.print("Enter phone number: ");
+        String phone = scanner.nextLine().trim();
+
+        System.out.print("Enter email address: ");
+        String email = scanner.nextLine().trim();
+
+        contacts.add(new Contact(name, phone, email));
+        saveContacts();
+        System.out.println("Contact added.");
+    }
+
+    private void viewContacts() {
+        if (contacts.isEmpty()) {
+            System.out.println("No contacts found.");
+            return;
+        }
+        System.out.println("\nContact List:");
+        int i = 1;
+        for (Contact c : contacts) {
+            System.out.println(i++ + ". " + c);
+        }
+    }
+
+    private void editContact() {
+        viewContacts();
+        if (contacts.isEmpty()) return;
+
+        System.out.print("Enter contact number to edit: ");
+        try {
+            int choice = Integer.parseInt(scanner.nextLine());
+            if (choice < 1 || choice > contacts.size()) {
+                System.out.println("Invalid contact number.");
+                return;
+            }
+            Contact c = contacts.get(choice - 1);
+
+            System.out.print("Enter new name (" + c.getName() + "): ");
+            String newName = scanner.nextLine().trim();
+            if (!newName.isEmpty()) c.setName(newName);
+
+            System.out.print("Enter new phone (" + c.getPhone() + "): ");
+            String newPhone = scanner.nextLine().trim();
+            if (!newPhone.isEmpty()) c.setPhone(newPhone);
+
+            System.out.print("Enter new email (" + c.getEmail() + "): ");
+            String newEmail = scanner.nextLine().trim();
+            if (!newEmail.isEmpty()) c.setEmail(newEmail);
+
+            saveContacts();
+            System.out.println("Contact updated.");
+        } catch (NumberFormatException e) {
+            System.out.println("Please enter a valid number.");
+        }
+    }
+
+    private void deleteContact() {
+        viewContacts();
+        if (contacts.isEmpty()) return;
+
+        System.out.print("Enter contact number to delete: ");
+        try {
+            int choice = Integer.parseInt(scanner.nextLine());
+            if (choice < 1 || choice > contacts.size()) {
+                System.out.println("Invalid contact number.");
+                return;
+            }
+            Contact removed = contacts.remove(choice - 1);
+            saveContacts();
+            System.out.println("Deleted contact: " + removed.getName());
+        } catch (NumberFormatException e) {
+            System.out.println("Please enter a valid number.");
+        }
+    }
+
+    private void menu() {
+        while (true) {
+            System.out.println("\nContact Management System");
+            System.out.println("1. Add Contact");
+            System.out.println("2. View Contacts");
+            System.out.println("3. Edit Contact");
+            System.out.println("4. Delete Contact");
+            System.out.println("5. Exit");
+            System.out.print("Enter your choice: ");
+
+            String choice = scanner.nextLine().trim();
+            switch (choice) {
+                case "1" -> addContact();
+                case "2" -> viewContacts();
+                case "3" -> editContact();
+                case "4" -> deleteContact();
+                case "5" -> {
+                    System.out.println("Exiting program.");
+                    return;
+                }
+                default -> System.out.println("Invalid choice. Please enter 1-5.");
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        ContactManager app = new ContactManager();
+        app.menu();
+    }
+}
